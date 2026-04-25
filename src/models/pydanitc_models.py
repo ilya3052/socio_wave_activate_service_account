@@ -101,10 +101,6 @@ class OneTimeActivateTokenSchema(ParentSchemaConfig):
         max_length=32,
         description="Одноразовый токен активации"
     )
-    created_at: str = Field(
-        alias="oneTimeActivateToken_createdAt",
-        description="Время создания токена"
-    )
     expires_at: str = Field(
         alias="oneTimeActivateToken_expiresAt",
         description="Время истечения токена"
