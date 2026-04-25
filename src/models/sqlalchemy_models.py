@@ -83,7 +83,6 @@ class OneTimeActivateTokenModel(Base, TypesMixin):
     __tablename__ = "users_onetimetoken"
 
     token: Mapped[str_32] = mapped_column(unique=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=text('CURRENT_TIMESTAMP'))
     expires_at: Mapped[datetime] = mapped_column(DateTime)
 
     user_id: Mapped[int] = mapped_column(ForeignKey("users_customuser.id", ondelete='CASCADE'))
