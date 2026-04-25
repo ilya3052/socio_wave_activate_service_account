@@ -5,8 +5,10 @@ from dotenv import load_dotenv
 
 from src.api import activate_vk_account, activate_tg_account
 from src.core import Session
+from src.exceptions import TokenExpiredException
 from src.models import UserModel
 from src.repo import UserRepository
+from src.utils.token import check_token_lifetime
 
 load_dotenv('src/core/cfg/.env')
 
@@ -23,6 +25,9 @@ async def main():
                 return
 
             token = getpass('Одноразовый токен активации: ')
+
+            one_time_token = user.one_time_token
+            await check_token_lifetime(one_time_token)
 
             if one_time_token := user.one_time_token:
                 if one_time_token.token == token:
@@ -44,10 +49,11 @@ async def main():
                 await activate_tg_account(one_time_token)
             case _:
                 print('Неверный выбор платформы')
-    except Exception as e:
-        print(f'Произошла ошибка вида {e.__class__.__name__} при обработке аккаунта', e)
-    finally:
         print('Успешная активация аккаунта.')
+    except TokenExpiredException as TE:
+        print(TE)
+    except Exception as e:
+        print(f'Произошла ошибка вида {e.__class__.__name__} при обработке аккаунта', e, e.__context__)
 
 
 if __name__ == "__main__":
