@@ -2,7 +2,7 @@ import os
 
 from dotenv import load_dotenv
 
-load_dotenv('cfg/.env')
+load_dotenv('src/core/cfg/.env')
 
 API_ID = os.getenv("API_ID")
 API_HASH = os.getenv("API_HASH")
