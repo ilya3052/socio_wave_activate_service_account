@@ -4,7 +4,7 @@ from telethon import TelegramClient
 from src.core import Session
 from src.core.config import API_ID, API_HASH, SESSION_FOLDER
 from src.models import OneTimeActivateTokenModel, ServiceAccountModel, ServiceAccountDataModel
-from src.repo import ServiceAccountDataRepository
+from src.repo import ServiceAccountDataRepository, ServiceAccountRepository
 
 load_dotenv('src/core/cfg/.env')
 
@@ -26,18 +26,15 @@ async def activate_in_platform(phone_number):
         client.disconnect()
 
 
-async def activate_in_db(token: OneTimeActivateTokenModel, phone_number):
+async def activate_in_db(token: OneTimeActivateTokenModel, phone_number, account_id: int):
     try:
         session_path = f'{SESSION_FOLDER}/{phone_number}.session'
         with Session() as session:
-            account_data_repo: ServiceAccountDataRepository = ServiceAccountDataRepository(session)
+            account_repo = ServiceAccountRepository(session)
+            account: ServiceAccountModel = account_repo.get(account_id)
 
-            account_data_instance: ServiceAccountDataModel = account_data_repo.get_by_phone_number(phone_number)
-
-            account_instance: ServiceAccountModel = account_data_instance.serviceAccount
-            account_instance.is_activated = True
-
-            account_data_instance.session_path = session_path
+            account.is_activated = True
+            account.session_path = session_path
 
             session.delete(token)
             session.commit()
@@ -46,10 +43,10 @@ async def activate_in_db(token: OneTimeActivateTokenModel, phone_number):
         raise
 
 
-async def activate_tg_account(token: OneTimeActivateTokenModel):
+async def activate_tg_account(token: OneTimeActivateTokenModel, account_id: int):
     try:
         phone_number = input('Введите номер телефона (без + ): ')
         await activate_in_platform(phone_number)
-        await activate_in_db(token, phone_number)
+        await activate_in_db(token, phone_number, account_id)
     except Exception as e:
         raise
