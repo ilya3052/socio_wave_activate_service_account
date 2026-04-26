@@ -7,17 +7,14 @@ from src.repo import ServiceAccountRepository
 from src.utils.crypto import encrypt
 
 
-async def activate_vk_account(token: OneTimeActivateTokenModel):
+async def activate_vk_account(token: OneTimeActivateTokenModel, account_id: int):
     try:
         with Session() as session:
-            app_id = input('Введите app_id: ')
-
             account_repo = ServiceAccountRepository(session)
-            account_instance: ServiceAccountModel = account_repo.get_by_app_id(app_id)
+            account: ServiceAccountModel = account_repo.get(account_id)
+            account.is_activated = True
 
-            account_instance.is_activated = True
-
-            account_instance_data: ServiceAccountDataModel = account_instance.data
+            account_instance_data: ServiceAccountDataModel = account.data
 
             service_key = getpass('Введите сервисный ключ: ')
             protected_key = getpass('Введите защищенный ключ: ')
