@@ -30,6 +30,7 @@ class Base(DeclarativeBase):
 
 class TypesMixin:
     type_annotation_map = {
+        str_11: String(11),
         str_16: String(16),
         str_32: String(32),
         str_128: String(128),
@@ -42,17 +43,35 @@ class PlatformModel(Base, TypesMixin):
     __tablename__ = "social_entities_platform"
 
     name: Mapped[str_128]
+    alias: Mapped[str_16]
+
+    accounts: Mapped[list['ServiceAccountModel']] = relationship(
+        back_populates='platform'
+    )
 
 
 class ServiceAccountModel(Base, TypesMixin):
     __tablename__ = "service_accounts_serviceaccount"
     name: Mapped[str_128]
-    platform_id: Mapped[int] = mapped_column(ForeignKey("social_entities_platform.id", ondelete="CASCADE"))
+
+    platform_id: Mapped[int] = mapped_column(
+        ForeignKey("social_entities_platform.id", ondelete="CASCADE"),
+        unique=True
+    )
+    platform: Mapped['PlatformModel'] = relationship(
+        back_populates='accounts'
+    )
+
     app_id: Mapped[Optional[int]] = mapped_column(unique=True, nullable=True)
+
     is_activated: Mapped[bool] = mapped_column(server_default=text('false'))
+
     data: Mapped['ServiceAccountDataModel'] = relationship(
         uselist=False,
         back_populates='serviceAccount'
+    )
+    token: Mapped['OneTimeActivateTokenModel'] = relationship(
+        back_populates='account'
     )
 
 
@@ -73,17 +92,17 @@ class UserModel(Base, TypesMixin):
 
     username: Mapped[str_128] = mapped_column(unique=True)
 
-    one_time_token: Mapped[Optional['OneTimeActivateTokenModel']] = relationship(
-        uselist=False,
-        back_populates='user'
-    )
-
 
 class OneTimeActivateTokenModel(Base, TypesMixin):
-    __tablename__ = "users_onetimetoken"
+    __tablename__ = "service_accounts_onetimetoken"
 
     token: Mapped[str_32] = mapped_column(unique=True)
     expires_at: Mapped[datetime] = mapped_column(DateTime)
 
-    user_id: Mapped[int] = mapped_column(ForeignKey("users_customuser.id", ondelete='CASCADE'))
-    user: Mapped['UserModel'] = relationship(back_populates='one_time_token')
+    account_id: Mapped[int] = mapped_column(
+        ForeignKey("service_accounts_serviceaccount.id", ondelete='CASCADE'),
+        unique=True
+    )
+    account: Mapped['ServiceAccountModel'] = relationship(
+        back_populates='token'
+    )
