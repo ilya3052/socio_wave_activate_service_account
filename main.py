@@ -6,8 +6,8 @@ from dotenv import load_dotenv
 from src.api import activate_vk_account, activate_tg_account
 from src.core import Session
 from src.exceptions import TokenExpiredException
-from src.models import UserModel
-from src.repo import UserRepository
+from src.models import UserModel, OneTimeActivateTokenModel, ServiceAccountModel
+from src.repo import UserRepository, OneTimeActivateTokenRepository
 from src.utils.token import check_token_lifetime
 
 load_dotenv('src/core/cfg/.env')
@@ -16,7 +16,6 @@ load_dotenv('src/core/cfg/.env')
 async def main():
     try:
         username = input('Введите имя пользователя: ')
-
         with Session() as session:
             user_repo = UserRepository(session)
             user: UserModel = user_repo.get_by_username(username)
@@ -24,29 +23,27 @@ async def main():
                 print('Пользователь не найден.')
                 return
 
+            print('Добро пожаловать,', user.username)
+
             token = getpass('Одноразовый токен активации: ')
 
-            one_time_token = user.one_time_token
-            await check_token_lifetime(one_time_token)
-
-            if one_time_token := user.one_time_token:
-                if one_time_token.token == token:
-                    print('Добро пожаловать,', user.username)
-                else:
-                    print('Неверный токен.')
-                    return
-            else:
-                print('Отсутствует токен активации.')
+            token_repo = OneTimeActivateTokenRepository(session)
+            token_instance: OneTimeActivateTokenModel = token_repo.get_by_token(token)
+            if not token_instance:
+                print('Токен активации не найден.')
                 return
+            await check_token_lifetime(token_instance)
 
-        platform = input('Выберите платформу: \n1) ВКонтакте\n2) Telegram\n')
+            account: ServiceAccountModel = token_instance.account
+            platform: str = account.platform.alias
+
         match platform:
-            case '1':
+            case 'VK':
                 print('Вы выбрали ВКонтакте')
-                await activate_vk_account(one_time_token)
-            case '2':
+                await activate_vk_account(token_instance, account.id)
+            case 'TG':
                 print('Вы выбрали Telegram')
-                await activate_tg_account(one_time_token)
+                await activate_tg_account(token_instance, account.id)
             case _:
                 print('Неверный выбор платформы')
         print('Успешная активация аккаунта.')
