@@ -3,8 +3,8 @@ from telethon import TelegramClient
 
 from src.core import Session
 from src.core.config import API_ID, API_HASH, SESSION_FOLDER
-from src.models import OneTimeActivateTokenModel, ServiceAccountModel, ServiceAccountDataModel
-from src.repo import ServiceAccountDataRepository, ServiceAccountRepository
+from src.models import OneTimeActivateTokenModel, ServiceAccountModel
+from src.repo import ServiceAccountRepository
 
 load_dotenv('src/core/cfg/.env')
 

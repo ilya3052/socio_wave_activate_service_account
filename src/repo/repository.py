@@ -61,4 +61,3 @@ class OneTimeActivateTokenRepository(BaseRepository[OneTimeActivateTokenModel]):
             ).one_or_none()
         except NoResultFound:
             raise
-
