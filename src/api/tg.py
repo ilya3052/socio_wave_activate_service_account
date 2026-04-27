@@ -46,7 +46,11 @@ async def activate_in_db(token: OneTimeActivateTokenModel, phone_number, account
 
 async def activate_tg_account(token: OneTimeActivateTokenModel, account_id: int):
     try:
-        phone_number = input('Введите номер телефона (без + ): ')
+        with Session() as session:
+            account_repo = ServiceAccountRepository(session)
+            account: ServiceAccountModel = account_repo.get(account_id)
+            phone_number = account.data.phone_number
+
         await activate_in_platform(phone_number)
         await activate_in_db(token, phone_number, account_id)
     except Exception as e:
