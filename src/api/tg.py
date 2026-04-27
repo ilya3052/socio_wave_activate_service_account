@@ -3,7 +3,7 @@ from telethon import TelegramClient
 
 from src.core import Session
 from src.core.config import API_ID, API_HASH, SESSION_FOLDER
-from src.models import OneTimeActivateTokenModel, ServiceAccountModel
+from src.models import OneTimeActivateTokenModel, ServiceAccountModel, ServiceAccountDataModel
 from src.repo import ServiceAccountRepository
 
 load_dotenv('src/core/cfg/.env')
@@ -34,7 +34,8 @@ async def activate_in_db(token: OneTimeActivateTokenModel, phone_number, account
             account: ServiceAccountModel = account_repo.get(account_id)
 
             account.is_activated = True
-            account.session_path = session_path
+            account_data: ServiceAccountDataModel = account.data
+            account_data.session_path = session_path
 
             session.delete(token)
             session.commit()
