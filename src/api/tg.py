@@ -1,5 +1,6 @@
 from dotenv import load_dotenv
 from telethon import TelegramClient
+from getpass import getpass
 
 from src.core import Session
 from src.core.config import API_ID, API_HASH, SESSION_FOLDER
@@ -10,20 +11,20 @@ load_dotenv('src/core/cfg/.env')
 
 
 async def activate_in_platform(phone_number):
-    session_path = f'{SESSION_FOLDER}/{phone_number}.session'
-    client = TelegramClient(api_id=API_ID, api_hash=API_HASH, session=session_path)
+    session_path = f'{SESSION_FOLDER}\\{phone_number}.session'
+    client = TelegramClient(api_id=API_ID, api_hash=API_HASH, session=session_path, lang_code="ru", system_lang_code="ru-RU" )
     try:
         await client.connect()
         if not await client.is_user_authorized():
             await client.send_code_request(f'+{phone_number}')
             print(f"Код отправлен на номер телефона {phone_number}")
-            code = input('Введите код: ')
+            code = getpass('Введите код: ')
             await client.sign_in(f'+{phone_number}', code)
     except Exception as e:
         print('Произошла ошибка при активации аккаунта на платформе', e)
         raise
     finally:
-        client.disconnect()
+        await client.disconnect()
 
 
 async def activate_in_db(token: OneTimeActivateTokenModel, phone_number, account_id: int):
