@@ -27,7 +27,6 @@ def unique_path(path: str) -> tuple[str, int]:
 
 async def activate_in_platform(phone_number):
     session_path, attempt = unique_path(f'{SESSION_FOLDER}\\{phone_number}.session')
-    print(attempt)
     client = TelegramClient(api_id=API_ID, api_hash=API_HASH, session=session_path, lang_code="ru", system_lang_code="ru-RU" )
     try:
         await client.connect()
